@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIU Assets - Backend Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+        }
+        
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+        
+        .status {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .status-item {
+            flex: 1;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .status-item.success {
+            background: #d4edda;
+            border: 2px solid #28a745;
+        }
+        
+        .status-item.error {
+            background: #f8d7da;
+            border: 2px solid #dc3545;
+        }
+        
+        .status-item.loading {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+        }
+        
+        .status-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .status-value {
+            font-size: 20px;
+            font-weight: bold;
+        }
+        
+        .test-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .test-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .result {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border-left: 4px solid #667eea;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .result pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .success-text { color: #28a745; }
+        .error-text { color: #dc3545; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 SIU Assets Management</h1>
+        <p class="subtitle">Real-Time Backend Connection Test</p>
+        
+        <div class="status">
+            <div class="status-item" id="backendStatus">
+                <div class="status-label">Backend</div>
+                <div class="status-value">Checking...</div>
+            </div>
+            <div class="status-item" id="dbStatus">
+                <div class="status-label">Database</div>
+                <div class="status-value">Checking...</div>
+            </div>
+            <div class="status-item" id="authStatus">
+                <div class="status-label">Authentication</div>
+                <div class="status-value">Not Tested</div>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>🔍 Test 1: Backend Health Check</h3>
+            <button onclick="testHealth()">Test Health Endpoint</button>
+            <div id="healthResult"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>🔐 Test 2: Login (Authentication)</h3>
+            <button onclick="testLogin()">Test Login</button>
+            <button onclick="clearToken()">Clear Token</button>
+            <div id="loginResult"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>👥 Test 3: Get Users (Protected Route)</h3>
+            <button onclick="testGetUsers()">Get All Users</button>
+            <div id="usersResult"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>📦 Test 4: Get Assets</h3>
+            <button onclick="testGetAssets()">Get All Assets</button>
+            <div id="assetsResult"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>📊 Test 5: Dashboard Analytics</h3>
+            <button onclick="testAnalytics()">Get Analytics</button>
+            <div id="analyticsResult"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        let token = localStorage.getItem('token');
+
+        // Auto-check on load
+        window.onload = () => {
+            checkBackendStatus();
+            if (token) {
+                updateAuthStatus('success', 'Logged In');
+            }
+        };
+
+        async function checkBackendStatus() {
+            try {
+                const response = await fetch(`${API_URL}/health`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    updateBackendStatus('success', '✅ Online');
+                    updateDbStatus('success', '✅ Connected');
+                } else {
+                    updateBackendStatus('error', '❌ Error');
+                }
+            } catch (error) {
+                updateBackendStatus('error', '❌ Offline');
+                updateDbStatus('error', '❌ Error');
+            }
+        }
+
+        async function testHealth() {
+            showLoading('healthResult');
+            try {
+                const response = await fetch(`${API_URL}/health`);
+                const data = await response.json();
+                showResult('healthResult', data, true);
+            } catch (error) {
+                showResult('healthResult', { error: error.message }, false);
+            }
+        }
+
+        async function testLogin() {
+            showLoading('loginResult');
+            try {
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: 'admin@siu.com',
+                        password: 'admin123'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    token = data.data.token;
+                    localStorage.setItem('token', token);
+                    localStorage.setItem('currentUser', JSON.stringify(data.data.user));
+                    updateAuthStatus('success', '✅ Logged In');
+                    showResult('loginResult', data, true);
+                } else {
+                    showResult('loginResult', data, false);
+                }
+            } catch (error) {
+                showResult('loginResult', { error: error.message }, false);
+            }
+        }
+
+        async function testGetUsers() {
+            if (!token) {
+                showResult('usersResult', { error: 'Please login first!' }, false);
+                return;
+            }
+            
+            showLoading('usersResult');
+            try {
+                const response = await fetch(`${API_URL}/users`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const data = await response.json();
+                showResult('usersResult', data, data.success);
+            } catch (error) {
+                showResult('usersResult', { error: error.message }, false);
+            }
+        }
+
+        async function testGetAssets() {
+            if (!token) {
+                showResult('assetsResult', { error: 'Please login first!' }, false);
+                return;
+            }
+            
+            showLoading('assetsResult');
+            try {
+                const response = await fetch(`${API_URL}/assets`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const data = await response.json();
+                showResult('assetsResult', data, data.success);
+            } catch (error) {
+                showResult('assetsResult', { error: error.message }, false);
+            }
+        }
+
+        async function testAnalytics() {
+            if (!token) {
+                showResult('analyticsResult', { error: 'Please login first!' }, false);
+                return;
+            }
+            
+            showLoading('analyticsResult');
+            try {
+                const response = await fetch(`${API_URL}/analytics/dashboard`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const data = await response.json();
+                showResult('analyticsResult', data, data.success);
+            } catch (error) {
+                showResult('analyticsResult', { error: error.message }, false);
+            }
+        }
+
+        function clearToken() {
+            token = null;
+            localStorage.removeItem('token');
+            localStorage.removeItem('currentUser');
+            updateAuthStatus('error', '❌ Logged Out');
+            showResult('loginResult', { message: 'Token cleared. Please login again.' }, true);
+        }
+
+        function showLoading(elementId) {
+            document.getElementById(elementId).innerHTML = '<div class="spinner"></div>';
+        }
+
+        function showResult(elementId, data, success) {
+            const className = success ? 'success-text' : 'error-text';
+            document.getElementById(elementId).innerHTML = `
+                <div class="result">
+                    <strong class="${className}">${success ? '✅ Success' : '❌ Error'}</strong>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                </div>
+            `;
+        }
+
+        function updateBackendStatus(status, text) {
+            const el = document.getElementById('backendStatus');
+            el.className = `status-item ${status}`;
+            el.querySelector('.status-value').textContent = text;
+        }
+
+        function updateDbStatus(status, text) {
+            const el = document.getElementById('dbStatus');
+            el.className = `status-item ${status}`;
+            el.querySelector('.status-value').textContent = text;
+        }
+
+        function updateAuthStatus(status, text) {
+            const el = document.getElementById('authStatus');
+            el.className = `status-item ${status}`;
+            el.querySelector('.status-value').textContent = text;
+        }
+    </script>
+</body>
+</html>
