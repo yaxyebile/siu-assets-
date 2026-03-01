@@ -146,7 +146,14 @@ const apiRequest = async <T>(
             headers,
         })
 
-        const data = await response.json()
+        const text = await response.text()
+        let data: any = {}
+        try {
+            data = JSON.parse(text)
+        } catch (e) {
+            console.error('Failed to parse API response:', text.substring(0, 100))
+            data = { message: response.statusText || 'Server error' }
+        }
 
         if (!response.ok) {
             // Handle authentication errors
@@ -227,7 +234,13 @@ export const logout = (): void => {
 export const getCurrentUser = (): User | null => {
     if (typeof window === 'undefined') return null
     const userStr = localStorage.getItem('currentUser')
-    return userStr ? JSON.parse(userStr) : null
+    if (!userStr) return null
+    try {
+        return JSON.parse(userStr)
+    } catch (e) {
+        console.error('Failed to parse currentUser from localStorage')
+        return null
+    }
 }
 
 // ============================================================================
