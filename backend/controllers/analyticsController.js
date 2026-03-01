@@ -70,14 +70,22 @@ const getDashboardAnalytics = async (req, res) => {
         ]);
 
         const pendingRequests = await Request.countDocuments({ status: 'pending' });
+        const approvedRequests = await Request.countDocuments({ status: 'approved' });
+        const rejectedRequests = await Request.countDocuments({ status: 'rejected' });
 
-        // Financial statistics
+        // Financial statistics (sum purchaseCost × quantity for true total)
         const financialStats = await Asset.aggregate([
+            {
+                $match: { status: { $ne: 'disposed' } }
+            },
             {
                 $group: {
                     _id: null,
-                    totalPurchaseCost: { $sum: '$purchaseCost' },
-                    totalCurrentValue: { $sum: '$currentValue' }
+                    totalPurchaseCost: {
+                        $sum: { $multiply: ['$purchaseCost', { $ifNull: ['$quantity', 1] }] }
+                    },
+                    totalCurrentValue: { $sum: '$currentValue' },
+                    totalQuantity: { $sum: { $ifNull: ['$quantity', 1] } }
                 }
             }
         ]);
@@ -171,7 +179,10 @@ const getDashboardAnalytics = async (req, res) => {
             data: {
                 users: {
                     total: totalUsers,
-                    byRole: usersByRole
+                    byRole: usersByRole.reduce((acc, r) => {
+                        acc[r._id] = r.count;
+                        return acc;
+                    }, {})
                 },
                 assets: {
                     total: totalAssets,
@@ -184,12 +195,15 @@ const getDashboardAnalytics = async (req, res) => {
                 requests: {
                     total: totalRequests,
                     pending: pendingRequests,
+                    approved: approvedRequests,
+                    rejected: rejectedRequests,
                     byStatus: requestsByStatus,
                     byType: requestsByType
                 },
                 financials: {
                     totalPurchaseCost: financialStats[0]?.totalPurchaseCost || 0,
                     totalCurrentValue: financialStats[0]?.totalCurrentValue || 0,
+                    totalQuantity: financialStats[0]?.totalQuantity || 0,
                     totalDepreciation,
                     totalDamageCost
                 },

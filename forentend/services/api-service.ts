@@ -1,7 +1,7 @@
 // API Service for SIU Assets Management System
 // Connects to Node.js + MongoDB backend
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
+const API_BASE_URL = '/api'
 
 // Types (matching backend MongoDB schemas)
 export interface User {

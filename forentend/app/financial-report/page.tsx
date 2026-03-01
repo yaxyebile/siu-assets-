@@ -3,9 +3,9 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { DashboardLayout } from "@/components/layout/dashboard-layout"
-import { PageHeader } from "@/components/common/page-header"
 import { useAuth } from "@/context/auth-context"
 import { getAssets, getRequests, type Asset, type Request } from "@/services/api-service"
+import { FinancialReportSkeleton } from "@/components/ui/dashboard-skeleton"
 import {
   DollarSign,
   TrendingDown,
@@ -175,10 +175,7 @@ export default function FinancialReportPage() {
   if (isLoading || loading) {
     return (
       <DashboardLayout allowedRoles={["admin", "adminOfficer"]}>
-        <div className="flex flex-col items-center justify-center h-64 gap-3">
-          <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-          <p className="text-muted-foreground text-sm">Loading financial data...</p>
-        </div>
+        <FinancialReportSkeleton />
       </DashboardLayout>
     )
   }

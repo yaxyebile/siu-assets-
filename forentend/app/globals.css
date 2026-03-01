@@ -141,3 +141,22 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* ── Skeleton Shimmer Animation ── */
+@keyframes shimmer {
+  0% { background-position: -600px 0; }
+  100% { background-position: 600px 0; }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    oklch(0.22 0.01 240) 0%,
+    oklch(0.28 0.01 240) 40%,
+    oklch(0.32 0.02 240) 50%,
+    oklch(0.28 0.01 240) 60%,
+    oklch(0.22 0.01 240) 100%
+  );
+  background-size: 600px 100%;
+  animation: shimmer 1.6s infinite linear;
+}

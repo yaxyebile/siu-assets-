@@ -45,7 +45,7 @@ import {
   type Asset,
   type Request,
 } from "@/services/api-service"
-import { Plus, Pencil, Trash2, Search, QrCode, Eye, FileText, ArrowRight, AlertTriangle, RefreshCw } from "lucide-react"
+import { Plus, Pencil, Trash2, Search, QrCode, Eye, FileText, ArrowRight, AlertTriangle, RefreshCw, SlidersHorizontal, X } from "lucide-react"
 
 export function AssetListContent() {
   const [assets, setAssets] = useState<Asset[]>([])
@@ -53,6 +53,9 @@ export function AssetListContent() {
   const [searchTerm, setSearchTerm] = useState("")
   const [filterCategory, setFilterCategory] = useState<string>("all")
   const [filterStatus, setFilterStatus] = useState<string>("all")
+  const [filterDepartment, setFilterDepartment] = useState<string>("all")
+  const [filterCondition, setFilterCondition] = useState<string>("all")
+  const [filterType, setFilterType] = useState<string>("all")
   const [isEditOpen, setIsEditOpen] = useState(false)
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null)
@@ -120,20 +123,29 @@ export function AssetListContent() {
           a.serialNumber.toLowerCase().includes(searchTerm.toLowerCase()),
       )
     }
-
     if (filterCategory && filterCategory !== "all") {
       filtered = filtered.filter((a) => {
         const catName = (a.category && typeof a.category === 'object') ? a.category.name : String(a.category || "")
         return catName === filterCategory
       })
     }
-
     if (filterStatus && filterStatus !== "all") {
       filtered = filtered.filter((a) => a.status === filterStatus)
     }
-
+    if (filterDepartment && filterDepartment !== "all") {
+      filtered = filtered.filter((a) => {
+        const deptName = (a.department && typeof a.department === 'object') ? a.department.name : String(a.department || "")
+        return deptName === filterDepartment
+      })
+    }
+    if (filterCondition && filterCondition !== "all") {
+      filtered = filtered.filter((a) => a.condition === filterCondition)
+    }
+    if (filterType && filterType !== "all") {
+      filtered = filtered.filter((a) => (a.assetType || "") === filterType)
+    }
     setFilteredAssets(filtered)
-  }, [assets, searchTerm, filterCategory, filterStatus])
+  }, [assets, searchTerm, filterCategory, filterStatus, filterDepartment, filterCondition, filterType])
 
   const openReportDamage = (asset: Asset) => {
     setDamageAsset(asset)
@@ -288,57 +300,117 @@ export function AssetListContent() {
         }
       />
 
-      {/* Filters */}
-      <Card className="mb-6">
-        <CardContent className="pt-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search name, dept, serial..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9"
+      {/* ── Premium Filters Bar ── */}
+      <div className="mb-6 rounded-2xl border border-border bg-card overflow-hidden">
+        <div className="px-6 py-4 border-b border-border flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <SlidersHorizontal className="h-4 w-4 text-primary" />
+            <span className="font-medium text-sm">Xulo & Raadi</span>
+            {/* Active filter count badge */}
+            {[filterCategory, filterStatus, filterDepartment, filterCondition, filterType].filter(f => f !== "all").length + (searchTerm ? 1 : 0) > 0 && (
+              <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs font-bold">
+                {[filterCategory, filterStatus, filterDepartment, filterCondition, filterType].filter(f => f !== "all").length + (searchTerm ? 1 : 0)}
+              </span>
+            )}
+          </div>
+          <button
+            onClick={() => {
+              setSearchTerm("")
+              setFilterCategory("all")
+              setFilterStatus("all")
+              setFilterDepartment("all")
+              setFilterCondition("all")
+              setFilterType("all")
+            }}
+            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <X className="h-3.5 w-3.5" />
+            Clear All
+          </button>
+        </div>
+        <div className="p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
+          {/* Search */}
+          <div className="relative xl:col-span-2">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <input
+              placeholder="Magac, serial, department..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-9 pr-3 py-2 rounded-xl border border-border bg-background text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+            />
+          </div>
+          {/* Category */}
+          <Select value={filterCategory} onValueChange={setFilterCategory}>
+            <SelectTrigger className="rounded-xl">
+              <SelectValue placeholder="Nooca (Category)" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">🗂 Dhammaan Noocyada</SelectItem>
+              {categories.map((cat) => (
+                <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {/* Department */}
+          <Select value={filterDepartment} onValueChange={setFilterDepartment}>
+            <SelectTrigger className="rounded-xl">
+              <SelectValue placeholder="Qaybta (Dept)" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">🏢 Dhammaan Qaybaha</SelectItem>
+              {departments.map((dept) => (
+                <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {/* Status */}
+          <Select value={filterStatus} onValueChange={setFilterStatus}>
+            <SelectTrigger className="rounded-xl">
+              <SelectValue placeholder="Xaaladda" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">📊 Dhammaan Xaaladaha</SelectItem>
+              <SelectItem value="available">🟢 Available</SelectItem>
+              <SelectItem value="in-use">🔵 In Use</SelectItem>
+              <SelectItem value="maintenance">🔴 Maintenance</SelectItem>
+              <SelectItem value="transferred">🔄 Transferred</SelectItem>
+              <SelectItem value="disposed">⚫ Disposed</SelectItem>
+              <SelectItem value="missing">🟡 Missing</SelectItem>
+            </SelectContent>
+          </Select>
+          {/* Condition */}
+          <Select value={filterCondition} onValueChange={setFilterCondition}>
+            <SelectTrigger className="rounded-xl">
+              <SelectValue placeholder="Qaabka" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">✨ Dhammaan Qaabka</SelectItem>
+              <SelectItem value="Excellent">⭐ Excellent</SelectItem>
+              <SelectItem value="Good">👍 Good</SelectItem>
+              <SelectItem value="Fair">⚡ Fair</SelectItem>
+              <SelectItem value="Poor">⚠️ Poor</SelectItem>
+              <SelectItem value="Damaged">🔴 Damaged</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        {/* Result count */}
+        <div className="px-5 pb-4 flex items-center gap-2">
+          <span className="text-xs text-muted-foreground">
+            <span className="font-semibold text-foreground">{filteredAssets.length}</span> asset(s) la helay
+            {filteredAssets.length !== assets.length && (
+              <span className="ml-1">(oo ka mid ah {assets.length} guud)</span>
+            )}
+          </span>
+          {filteredAssets.length !== assets.length && (
+            <div className="h-1.5 flex-1 bg-border rounded-full overflow-hidden">
+              <div
+                className="h-full bg-primary rounded-full transition-all"
+                style={{ width: `${(filteredAssets.length / assets.length) * 100}%` }}
               />
             </div>
-            <Select value={filterCategory} onValueChange={setFilterCategory}>
-              <SelectTrigger>
-                <SelectValue placeholder="All Categories" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                {categories.map((cat) => (
-                  <SelectItem key={cat} value={cat}>
-                    {cat}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger>
-                <SelectValue placeholder="All Statuses" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="available">Available</SelectItem>
-                <SelectItem value="in-use">In Use</SelectItem>
-                <SelectItem value="maintenance">Maintenance</SelectItem>
-                <SelectItem value="transferred">Transferred</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setSearchTerm("")
-                setFilterCategory("all")
-                setFilterStatus("all")
-              }}
-            >
-              Clear Filters
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+          )}
+        </div>
+      </div>
 
       {/* Assets Table */}
       <Card>
