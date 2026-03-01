@@ -98,6 +98,28 @@ const assetSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    invoiceNumber: {
+        type: String,
+        trim: true
+    },
+    invoiceFile: {
+        type: String // We will store the base64 string or file URL here
+    },
+    warrantyExpiry: {
+        type: Date
+    },
+    assetType: {
+        type: String,
+        enum: ['Fixed', 'Movable'],
+        default: 'Fixed'
+    },
+    custodian: {
+        type: String,
+        trim: true
+    },
+    notes: {
+        type: String
+    },
     damageReports: [damageReportSchema],
     createdAt: {
         type: Date,

@@ -542,6 +542,24 @@ export function AssetListContent() {
                   <p className="text-xs text-muted-foreground">Condition</p>
                   <p className="font-medium">{viewAsset.condition || "N/A"}</p>
                 </div>
+                {viewAsset.invoiceFile && (
+                  <div className="col-span-2 md:col-span-4 mt-2">
+                    <p className="text-xs text-muted-foreground mb-2">Invoice Document / Sawirka Foojada</p>
+                    <div className="border border-border rounded-lg overflow-hidden max-w-sm">
+                      {viewAsset.invoiceFile.startsWith("data:image/") || viewAsset.invoiceFile.startsWith("http") ? (
+                        <a href={viewAsset.invoiceFile} target="_blank" rel="noopener noreferrer">
+                          <img src={viewAsset.invoiceFile} alt="Invoice Document" className="w-full object-contain max-h-48 hover:opacity-90 transition-opacity" />
+                        </a>
+                      ) : (
+                        <div className="p-4 bg-muted/30 flex items-center justify-center">
+                          <a href={viewAsset.invoiceFile} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-primary hover:underline">
+                            <FileText className="h-4 w-4" /> Eeg Invoice-ka (PDF/Dukumiinti)
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Activity History */}
