@@ -7,6 +7,8 @@ import { useAuth } from "@/context/auth-context"
 import { getAssets, getRequests, type Asset, type Request } from "@/services/api-service"
 import { FinancialReportSkeleton } from "@/components/ui/dashboard-skeleton"
 import {
+  Search,
+  Filter,
   DollarSign,
   TrendingDown,
   Package,
@@ -62,6 +64,8 @@ export default function FinancialReportPage() {
   })
   const [disposedAssetsList, setDisposedAssetsList] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [searchTerm, setSearchTerm] = useState("")
+  const [categoryFilter, setCategoryFilter] = useState("All")
 
   useEffect(() => {
     if (!isLoading && !user) { router.push("/"); return }
@@ -184,6 +188,15 @@ export default function FinancialReportPage() {
   const fmtPct = (v: number) => `${((isNaN(v) ? 0 : v) * 100).toFixed(3)}%`
   const netValue = isNaN(totals.totalCurrentValue - totals.damageLoss) ? 0 : totals.totalCurrentValue - totals.damageLoss
   const depreciationPct = totals.totalOriginalValue > 0 ? (totals.totalDepreciation / totals.totalOriginalValue) * 100 : 0
+
+  const categories = ["All", ...Array.from(new Set(assetsWithDepreciation.map(a => (a.category as any)?.name || a.category || "N/A")))]
+
+  const filteredAssets = assetsWithDepreciation.filter(asset => {
+    const matchesSearch = asset.name.toLowerCase().includes(searchTerm.toLowerCase())
+    const catName = (asset.category as any)?.name || asset.category || "N/A"
+    const matchesCategory = categoryFilter === "All" || catName === categoryFilter
+    return matchesSearch && matchesCategory
+  })
 
   const getDamageLevelLabel = (level: string) => {
     switch (level) {
@@ -443,13 +456,39 @@ export default function FinancialReportPage() {
 
       {/* ── DEPRECIATION DETAIL TABLE ── */}
       <div className="rounded-2xl overflow-hidden border border-border bg-card">
-        <div className="px-6 py-5 border-b border-border flex items-center gap-3">
-          <div className="p-2 bg-primary/10 rounded-xl">
-            <Percent className="h-5 w-5 text-primary" />
+        <div className="px-6 py-5 border-b border-border flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-primary/10 rounded-xl">
+              <Percent className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <h2 className="font-semibold text-lg">Faahfaahinta Qiimo-dhaca Asset Kasta</h2>
+              <p className="text-muted-foreground text-sm">{filteredAssets.length} active assets</p>
+            </div>
           </div>
-          <div>
-            <h2 className="font-semibold text-lg">Faahfaahinta Qiimo-dhaca Asset Kasta</h2>
-            <p className="text-muted-foreground text-sm">{assetsWithDepreciation.length} active assets</p>
+          <div className="flex flex-col sm:flex-row items-center gap-3">
+            <div className="relative w-full sm:w-auto">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="Raadi asset..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-9 pr-4 py-2 text-sm rounded-xl border border-border bg-background hover:border-primary/50 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none w-full sm:w-64 transition-all"
+              />
+            </div>
+            <div className="relative w-full sm:w-auto">
+              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <select
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+                className="pl-9 pr-8 py-2 text-sm rounded-xl border border-border bg-background hover:border-primary/50 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none appearance-none cursor-pointer w-full sm:w-48 transition-all"
+              >
+                {categories.map(cat => (
+                  <option key={cat as string} value={cat as string}>{cat}</option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
         <div className="overflow-x-auto">
@@ -473,15 +512,15 @@ export default function FinancialReportPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {assetsWithDepreciation.length === 0 ? (
+              {filteredAssets.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={9} className="text-center py-12 text-muted-foreground">
                     <Package className="h-10 w-10 mx-auto mb-2 opacity-20" />
-                    <p>Ma jiraan assets la diiwaangaliyay</p>
+                    <p>Ma jiraan assets la helay</p>
                   </TableCell>
                 </TableRow>
               ) : (
-                assetsWithDepreciation.map((asset) => (
+                filteredAssets.map((asset) => (
                   <TableRow key={asset.id} className="hover:bg-muted/30 transition-colors">
                     <TableCell className="font-medium">{asset.name}</TableCell>
                     <TableCell className="text-muted-foreground">
