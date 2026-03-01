@@ -47,7 +47,8 @@ export default function OperationDashboard() {
     loadData()
   }, [user])
 
-  const typeLabel = (type: string) => {
+  const typeLabel = (type?: string) => {
+    if (!type) return "Unknown"
     switch (type) {
       case "asset-damage": return "Dhaawac"
       case "asset-transfer": return "Wareejin"
@@ -57,7 +58,8 @@ export default function OperationDashboard() {
     }
   }
 
-  const typeColor = (type: string) => {
+  const typeColor = (type?: string) => {
+    if (!type) return "bg-slate-500/10 border-slate-500/20 text-slate-300"
     switch (type) {
       case "asset-damage": return "bg-red-500/10 border-red-500/20 text-red-300"
       case "asset-registration": return "bg-emerald-500/10 border-emerald-500/20 text-emerald-300"
