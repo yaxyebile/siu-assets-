@@ -41,19 +41,20 @@ export default function ManageOfficersPage() {
   const [formData, setFormData] = useState({ name: "", email: "", password: "", phone: "" })
   const [error, setError] = useState("")
 
-  const loadOfficers = () => {
-    setOfficers(getUsersByRole("adminOfficer"))
+  const loadOfficers = async () => {
+    const data = await getUsersByRole("adminOfficer")
+    setOfficers(data)
   }
 
   useEffect(() => {
     loadOfficers()
   }, [])
 
-  const handleCreate = (e: React.FormEvent) => {
+  const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
 
-    const result = createUser({
+    const result = await createUser({
       name: formData.name,
       email: formData.email,
       password: formData.password,
@@ -70,7 +71,7 @@ export default function ManageOfficersPage() {
     }
   }
 
-  const handleEdit = (e: React.FormEvent) => {
+  const handleEdit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!selectedOfficer) return
     setError("")
@@ -84,7 +85,7 @@ export default function ManageOfficersPage() {
       updates.password = formData.password
     }
 
-    const result = updateUser(selectedOfficer.id, updates)
+    const result = await updateUser(selectedOfficer.id, updates)
     if (result.success) {
       setIsEditOpen(false)
       setSelectedOfficer(null)
@@ -95,10 +96,10 @@ export default function ManageOfficersPage() {
     }
   }
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!deleteId) return
 
-    const result = deleteUser(deleteId)
+    const result = await deleteUser(deleteId)
     if (result.success) {
       setDeleteId(null)
       loadOfficers()
