@@ -248,13 +248,17 @@ export const getCurrentUser = (): User | null => {
 // ============================================================================
 
 export const getUsers = async (): Promise<User[]> => {
-    const result = await apiRequest<User[]>('/users')
-    if (result.success && result.data) {
-        // Convert _id to id for compatibility
-        return result.data.map(user => ({
-            ...user,
-            id: user._id || user.id
-        }))
+    try {
+        const result = await apiRequest<User[]>('/users')
+        if (result.success && Array.isArray(result.data)) {
+            // Convert _id to id for compatibility
+            return result.data.map(user => ({
+                ...user,
+                id: user._id || user.id
+            }))
+        }
+    } catch (e) {
+        console.error('getUsers error:', e)
     }
     return []
 }
@@ -271,12 +275,16 @@ export const getUserById = async (id: string): Promise<User | undefined> => {
 }
 
 export const getUsersByRole = async (role: User['role']): Promise<User[]> => {
-    const result = await apiRequest<User[]>(`/users/role/${role}`)
-    if (result.success && result.data) {
-        return result.data.map(user => ({
-            ...user,
-            id: user._id || user.id
-        }))
+    try {
+        const result = await apiRequest<User[]>(`/users/role/${role}`)
+        if (result.success && Array.isArray(result.data)) {
+            return result.data.map(user => ({
+                ...user,
+                id: user._id || user.id
+            }))
+        }
+    } catch (e) {
+        console.error('getUsersByRole error:', e)
     }
     return []
 }
@@ -342,15 +350,19 @@ export const getAssets = async (filters?: {
     category?: string
     search?: string
 }): Promise<Asset[]> => {
-    const queryParams = filters ? new URLSearchParams(filters as any).toString() : ''
-    const endpoint = queryParams ? `/assets?${queryParams}` : '/assets'
+    try {
+        const queryParams = filters ? new URLSearchParams(filters as any).toString() : ''
+        const endpoint = queryParams ? `/assets?${queryParams}` : '/assets'
 
-    const result = await apiRequest<Asset[]>(endpoint)
-    if (result.success && result.data) {
-        return result.data.map(asset => ({
-            ...asset,
-            id: asset._id || asset.id
-        }))
+        const result = await apiRequest<Asset[]>(endpoint)
+        if (result.success && Array.isArray(result.data)) {
+            return result.data.map(asset => ({
+                ...asset,
+                id: asset._id || asset.id
+            }))
+        }
+    } catch (e) {
+        console.error('getAssets error:', e)
     }
     return []
 }
@@ -491,15 +503,19 @@ export const getRequests = async (filters?: {
     user?: string
     assetId?: string
 }): Promise<Request[]> => {
-    const queryParams = filters ? new URLSearchParams(filters as any).toString() : ''
-    const endpoint = queryParams ? `/requests?${queryParams}` : '/requests'
+    try {
+        const queryParams = filters ? new URLSearchParams(filters as any).toString() : ''
+        const endpoint = queryParams ? `/requests?${queryParams}` : '/requests'
 
-    const result = await apiRequest<Request[]>(endpoint)
-    if (result.success && result.data) {
-        return result.data.map(request => ({
-            ...request,
-            id: request._id || request.id
-        }))
+        const result = await apiRequest<Request[]>(endpoint)
+        if (result.success && Array.isArray(result.data)) {
+            return result.data.map(request => ({
+                ...request,
+                id: request._id || request.id
+            }))
+        }
+    } catch (e) {
+        console.error('getRequests error:', e)
     }
     return []
 }
@@ -524,12 +540,16 @@ export const getPendingRequests = async (): Promise<Request[]> => {
 }
 
 export const getMyRequests = async (): Promise<Request[]> => {
-    const result = await apiRequest<Request[]>('/requests/my')
-    if (result.success && result.data) {
-        return result.data.map(request => ({
-            ...request,
-            id: request._id || request.id
-        }))
+    try {
+        const result = await apiRequest<Request[]>('/requests/my')
+        if (result.success && Array.isArray(result.data)) {
+            return result.data.map(request => ({
+                ...request,
+                id: request._id || request.id
+            }))
+        }
+    } catch (e) {
+        console.error('getMyRequests error:', e)
     }
     return []
 }
@@ -587,12 +607,16 @@ export const rejectRequest = async (id: string, reason?: string): Promise<{ succ
 // ============================================================================
 
 export const getDepartments = async (): Promise<Department[]> => {
-    const result = await apiRequest<Department[]>('/departments')
-    if (result.success && result.data) {
-        return result.data.map(dept => ({
-            ...dept,
-            id: dept._id || dept.id
-        }))
+    try {
+        const result = await apiRequest<Department[]>('/departments')
+        if (result.success && Array.isArray(result.data)) {
+            return result.data.map(dept => ({
+                ...dept,
+                id: dept._id || dept.id
+            }))
+        }
+    } catch (e) {
+        console.error('getDepartments error:', e)
     }
     return []
 }
@@ -653,12 +677,16 @@ export const deleteDepartment = async (id: string): Promise<{ success: boolean; 
 // ============================================================================
 
 export const getCategories = async (): Promise<Category[]> => {
-    const result = await apiRequest<Category[]>('/categories')
-    if (result.success && result.data) {
-        return result.data.map(cat => ({
-            ...cat,
-            id: cat._id || cat.id
-        }))
+    try {
+        const result = await apiRequest<Category[]>('/categories')
+        if (result.success && Array.isArray(result.data)) {
+            return result.data.map(cat => ({
+                ...cat,
+                id: cat._id || cat.id
+            }))
+        }
+    } catch (e) {
+        console.error('getCategories error:', e)
     }
     return []
 }
