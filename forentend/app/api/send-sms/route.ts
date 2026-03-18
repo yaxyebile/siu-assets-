@@ -8,26 +8,34 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Phone number and message are required" }, { status: 400 })
     }
 
-    const formData = new URLSearchParams()
-    formData.append("sendto", sendto)
-    formData.append("body", body)
-    formData.append("device_id", "12539")
-    formData.append("sim", "1")
-    formData.append("token", "9cc542db9cc23b626ae294a166a1594d")
+    // Clean phone number (remove non-digits except +)
+    const cleanPhone = sendto.replace(/[^\d+]/g, '');
 
-    const response = await fetch("https://smsgateway24.com/getdata/addsms", {
+    // Prepare JSON payload for xaliye6 API
+    const payload = {
+      mobile: cleanPhone,
+      message: body
+    }
+
+    const response = await fetch("https://api.xaliye6.online/sendSMS", {
       method: "POST",
       headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
+        "Content-Type": "application/json",
       },
-      body: formData.toString(),
+      body: JSON.stringify(payload),
     })
 
     const data = await response.text()
 
-    return NextResponse.json({ success: true, data })
-  } catch (error) {
+    // Attempt to parse JSON response if possible
+    let jsonData = data;
+    try {
+      jsonData = JSON.parse(data);
+    } catch (e) { }
 
+    return NextResponse.json({ success: true, data: jsonData })
+  } catch (error) {
+    console.error("SMS Error:", error);
     return NextResponse.json({ error: "Failed to send SMS" }, { status: 500 })
   }
 }

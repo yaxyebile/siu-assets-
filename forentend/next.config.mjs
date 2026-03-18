@@ -10,7 +10,7 @@ const nextConfig = {
     return [
       {
         source: '/api/:path*',
-        destination: 'https://siu-assets.onrender.com/api/:path*',
+        destination: 'https://siu-assets.onrender.com/api/:path*', // Updated to local backend
       },
     ]
   },
